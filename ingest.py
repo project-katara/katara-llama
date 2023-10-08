@@ -9,6 +9,9 @@ from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
 
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
+
 from constants import (
     CHROMA_SETTINGS,
     DOCUMENT_MAP,

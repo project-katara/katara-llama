@@ -8,6 +8,11 @@ from langchain.llms import HuggingFacePipeline
 from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler  # for streaming response
 from langchain.callbacks.manager import CallbackManager
 
+torch.cuda.empty_cache()
+torch.cuda.memory_summary(device=None, abbreviated=False)
+
+torch.set_grad_enabled(False)
+
 callback_manager = CallbackManager([StreamingStdOutCallbackHandler()])
 
 from prompt_template_utils import get_prompt_template
@@ -78,7 +83,7 @@ def load_model(device_type, model_id, model_basename=None, LOGGING=logging):
         "text-generation",
         model=model,
         tokenizer=tokenizer,
-        max_length=MAX_NEW_TOKENS,
+        max_length=50,
         temperature=0.2,
         # top_p=0.95,
         repetition_penalty=1.15,

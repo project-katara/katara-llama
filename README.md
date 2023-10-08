@@ -319,3 +319,8 @@ This is a test project to validate the feasibility of a fully local solution for
        conda uninstall tokenizers, transformers
        pip install transformers
     ```
+- [ERROR: "If reserved but unallocated memory is large try setting max_split_size_mb to avoid fragmentation..." ](https://pytorch.org/docs/stable/notes/cuda.html#memory-management)
+    ```shell
+      export PYTORCH_NO_CUDA_MEMORY_CACHING=1
+    ```
+
