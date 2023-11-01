@@ -29,6 +29,6 @@ Essentially, embeddings enable machine learning models to find similar objects. 
 
 **LLM** - Large Language Models are a core component of [LangChain](https://python.langchain.com/docs/get_started/introduction). LangChain does not serve its own LLMs, but rather provides a standard interface for interacting with many different LLMs.
 
-##### Fork
+##### Acknowledgements
 
 This project is based on the following repository [localGPT](https://github.com/PromtEngineer/localGPT)
