@@ -1,12 +1,3 @@
----
-license: mit
-title: katara
-sdk: docker
-emoji: 🚀
-colorFrom: yellow
-colorTo: yellow
----
-
 ## Artificial Intelligence (AI) - LLAMA
 
 Our LLaMa was created using a pre-processed model called Llama-2-7b-Chat-GGUF. Basically, it converts Llama 2 to a standard called GPT-Generated Unified Format.
