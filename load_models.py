@@ -1,18 +1,30 @@
 import torch
+
+import logging
+
 from auto_gptq import AutoGPTQForCausalLM
 from huggingface_hub import hf_hub_download
-from langchain.llms import LlamaCpp
+from langchain.llms import LlamaCpp, HuggingFacePipeline
+
+# from langchain.callbacks.streaming_stdout import StreamingStdOutCallbackHandler
 
 from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     LlamaForCausalLM,
     LlamaTokenizer,
+    GenerationConfig,
+    pipeline,
 )
+
+
+torch.set_grad_enabled(False)
+
+
 from constants import CONTEXT_WINDOW_SIZE, MAX_NEW_TOKENS, N_GPU_LAYERS, N_BATCH, MODELS_PATH
 
 
-def load_quantized_model_gguf_ggml(model_id, model_basename, device_type, logging):
+def load_quantized_model_gguf_ggml(model_id, model_basename, device_type, logging, stream = False, callbacks = []):
     """
     Load a GGUF/GGML quantized model using LlamaCpp.
 
@@ -46,12 +58,19 @@ def load_quantized_model_gguf_ggml(model_id, model_basename, device_type, loggin
             "model_path": model_path,
             "n_ctx": CONTEXT_WINDOW_SIZE,
             "max_tokens": MAX_NEW_TOKENS,
-            "n_batch": N_BATCH,  # set this based on your GPU & CPU RAM
+            "n_batch": N_BATCH,
+             # set this based on your GPU & CPU RAM
         }
         if device_type.lower() == "mps":
             kwargs["n_gpu_layers"] = 1
         if device_type.lower() == "cuda":
-            kwargs["n_gpu_layers"] = N_GPU_LAYERS  # set this based on your GPU
+            kwargs["n_gpu_layers"] = N_GPU_LAYERS
+              # set this based on your GPU
+
+        # kwargs["stream"] = stream
+
+        # if stream == True:
+        #     kwargs["callbacks"] = callbacks
 
         return LlamaCpp(**kwargs)
     except:
@@ -101,6 +120,7 @@ def load_quantized_model_qptq(model_id, model_basename, device_type, logging):
         use_triton=False,
         quantize_config=None,
     )
+
     return model, tokenizer
 
 
@@ -149,3 +169,61 @@ def load_full_model(model_id, model_basename, device_type, logging):
         )
         model.tie_weights()
     return model, tokenizer
+
+
+def load_model(device_type, model_id, model_basename=None, LOGGING=logging, stream=False, callbacks = []):
+    """
+    Select a model for text generation using the HuggingFace library.
+    If you are running this for the first time, it will download a model for you.
+    subsequent runs will use the model from the disk.
+
+    Args:
+        device_type (str): Type of device to use, e.g., "cuda" for GPU or "cpu" for CPU.
+        model_id (str): Identifier of the model to load from HuggingFace's model hub.
+        model_basename (str, optional): Basename of the model if using quantized models.
+            Defaults to None.
+
+    Returns:
+        HuggingFacePipeline: A pipeline object for text generation using the loaded model.
+
+    Raises:
+        ValueError: If an unsupported model or device type is provided.
+    """
+
+    logging.info(f"Loading Model: {model_id}, on: {device_type}")
+    logging.info("This action can take a few minutes!")
+
+    if model_basename is not None:
+        if ".gguf" in model_basename.lower():
+            llm = load_quantized_model_gguf_ggml(model_id, model_basename, device_type, LOGGING, stream, callbacks)
+            return llm
+        elif ".ggml" in model_basename.lower():
+            model, tokenizer = load_quantized_model_gguf_ggml(model_id, model_basename, device_type, LOGGING)
+        else:
+            model, tokenizer = load_quantized_model_qptq(model_id, model_basename, device_type, LOGGING)
+    else:
+        model, tokenizer = load_full_model(model_id, model_basename, device_type, LOGGING)
+
+    # Load configuration from the model to avoid warnings
+    generation_config = GenerationConfig.from_pretrained(model_id)
+    # see here for details:
+    # https://huggingface.co/docs/transformers/
+    # main_classes/text_generation#transformers.GenerationConfig.from_pretrained.returns
+
+    # Create a pipeline for text generation
+
+    pipe = pipeline(
+        "text-generation",
+        model=model,
+        tokenizer=tokenizer,
+        max_length=MAX_NEW_TOKENS,
+        temperature=0.2,
+        # top_p=0.95,
+        repetition_penalty=1.15,
+        generation_config=generation_config,
+    )
+
+    local_llm = HuggingFacePipeline(pipeline=pipe)
+    logging.info("Local LLM Loaded")
+
+    return local_llm

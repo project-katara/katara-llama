@@ -1,4 +1,11 @@
 *
 !*.py
+!*.txt
+!*.html
+!*.sh
 !requirements.txt
 !SOURCE_DOCUMENTS
+!static
+!websocket
+
+

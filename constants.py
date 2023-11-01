@@ -11,8 +11,12 @@ from langchain.document_loaders import UnstructuredFileLoader
 # load_dotenv()
 ROOT_DIRECTORY = os.path.dirname(os.path.realpath(__file__))
 
+PATH_NAME_SOURCE_DIRECTORY = "SOURCE_DOCUMENTS"
+
+SHOW_SOURCES=True
+
 # Define the folder for storing database
-SOURCE_DIRECTORY = f"{ROOT_DIRECTORY}/SOURCE_DOCUMENTS"
+SOURCE_DIRECTORY = f"{ROOT_DIRECTORY}/{PATH_NAME_SOURCE_DIRECTORY}"
 
 PERSIST_DIRECTORY = f"{ROOT_DIRECTORY}/DB"
 
@@ -33,13 +37,12 @@ MAX_NEW_TOKENS = CONTEXT_WINDOW_SIZE  # int(CONTEXT_WINDOW_SIZE/4)
 
 #### If you get a "not enough space in the buffer" error, you should reduce the values below, start with half of the original values and keep halving the value until the error stops appearing
 
-N_GPU_LAYERS = 1  # Llama-2-70B has 83 layers
-N_BATCH = 1
+N_GPU_LAYERS = 100  # Llama-2-70B has 83 layers
+N_BATCH = 1024
 
 ### From experimenting with the Llama-2-7B-Chat-GGML model on 8GB VRAM, these values work:
 # N_GPU_LAYERS = 20
 # N_BATCH = 512
-
 
 # https://python.langchain.com/en/latest/_modules/langchain/document_loaders/excel.html#UnstructuredExcelLoader
 DOCUMENT_MAP = {

@@ -4,13 +4,11 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, as_compl
 
 import click
 import torch
+
 from langchain.docstore.document import Document
 from langchain.embeddings import HuggingFaceInstructEmbeddings
 from langchain.text_splitter import Language, RecursiveCharacterTextSplitter
 from langchain.vectorstores import Chroma
-
-torch.cuda.empty_cache()
-torch.cuda.memory_summary(device=None, abbreviated=False)
 
 from constants import (
     CHROMA_SETTINGS,
@@ -20,7 +18,6 @@ from constants import (
     PERSIST_DIRECTORY,
     SOURCE_DIRECTORY,
 )
-
 
 def load_single_document(file_path: str) -> Document:
     # Loads a single document from a file path
@@ -126,7 +123,7 @@ def main(device_type):
     text_documents, python_documents = split_documents(documents)
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     python_splitter = RecursiveCharacterTextSplitter.from_language(
-        language=Language.PYTHON, chunk_size=880, chunk_overlap=200
+        language=Language.PYTHON, chunk_size=1000, chunk_overlap=200
     )
     texts = text_splitter.split_documents(text_documents)
     texts.extend(python_splitter.split_documents(python_documents))
@@ -136,8 +133,9 @@ def main(device_type):
     # Create embeddings
     embeddings = HuggingFaceInstructEmbeddings(
         model_name=EMBEDDING_MODEL_NAME,
-        model_kwargs={"device": device_type},
+        model_kwargs={"device": "cuda"},
     )
+
     # change the embedding type here if you are running into issues.
     # These are much smaller embeddings and will work for most appications
     # If you use HuggingFaceEmbeddings, make sure to also use the same in the
@@ -152,8 +150,9 @@ def main(device_type):
         client_settings=CHROMA_SETTINGS,
 
     )
-   
 
+    db.persist()
+    db = None
 
 if __name__ == "__main__":
     logging.basicConfig(
