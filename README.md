@@ -33,7 +33,7 @@ The data was taken from the following sources:
 [LLaMa 2](https://ai.meta.com/llama/): Dataset from Facebook's own model
 [Llama-2-7b-Chat-GGUF](https://huggingface.co/TheBloke/Llama-2-7b-Chat-GGUF): Model that uses the GPT-Generated Unified Format
 
-#### External Data
+#### External Data to fine tune
 
 [Earth Observatory](https://earthobservatory.nasa.gov/)
 [Environmental Performance Index (EPI)](https://epi.yale.edu/)
